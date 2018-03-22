@@ -28,8 +28,7 @@ introduced in the skeleton code below. For instance, you might want to
 add a "rec", or use a different argument list, or no argument list at
 all but binding to an anonymous function instead.) *)
 
-let inc _ =
-  failwith "inc not implemented" ;;
+let inc (ctr : int ref) : int ref = ref (!ctr + 1);;  
 
 (* Write a function named remember that returns the last string that
 it was called with. The first time it is called, it should return the
@@ -47,8 +46,15 @@ This is probably the least functional function ever written.
 As usual, you shouldn't feel beholden to how the definition is
 introduced in the skeleton code below. *)
 
-let remember _ = 
-  failwith "remember not implemented" ;;
+let remember : string -> string = 
+  let past = ref "" in
+  fun (s : string) -> 
+    let temp = !past in
+    past := s ;
+    temp ;;
+
+
+
 
 (*====================================================================
 Part 2: Gensym
@@ -90,8 +96,12 @@ Complete the implementation of gensym. As usual, you shouldn't feel
 beholden to how the definition is introduced in the skeleton code
 below. (We'll stop mentioning this now.) *)
 
-let gensym (s : string) : string = 
-  failwith "gensym not implemented" ;;
+let gensym : string -> string =  
+  let ctr = ref 0 in 
+  fun (s: string) ->  
+    let temp = !ctr in
+    ctr := !ctr + 1;
+    s ^ string_of_int (temp) ;;
 
 (*====================================================================
 Part 3: Appending mutable lists
@@ -119,8 +129,10 @@ list to a mutable list, with behavior like this:
       Cons (1, {contents = Cons (2, {contents = Cons (3, {contents = Nil})})})
  *)
 
-let mlist_of_list (lst : 'a list) : 'a mlist =
-  failwith "mlist_of_list not implemented" ;;
+let rec mlist_of_list (lst : 'a list) : 'a mlist =
+  match lst with
+  | [] -> Nil
+  | hd :: tl -> Cons (hd, ref (mlist_of_list tl)) ;;
 
 (* Define a function length to compute the length of an mlist. Try to
 do this without looking at the solution that is given in the lecture
@@ -132,8 +144,10 @@ slides.
     - : int = 4
  *)
 
-let length (m : 'a mlist) : int = 
-  failwith "length not implemented" ;;
+let rec length (m : 'a mlist) : int = 
+  match m with
+  | Nil -> 0
+  | Cons (hd, tl) -> 1 + length (!tl) ;;
 
 (* What is the time complexity of the length function in O() notation
 in terms of the length of its list argument? *)
@@ -204,8 +218,11 @@ Example of use:
               {contents = Cons (5, {contents = Cons (6, {contents = Nil})})})})})})
  *)
 
-let mappend _ = 
-  failwith "mappend not implemented" ;;
+let rec mappend (m1: 'a mlist) (m2: 'a mlist) : unit =
+  match m1 with
+  | Nil -> raise (Invalid_argument "first mlist is empty")
+  | Cons (_, tl) -> if !tl = Nil then tl := m2
+                     else mappend !tl m2 ;;
 
 (* What happens when you evaluate the following expressions
 sequentially in order?
